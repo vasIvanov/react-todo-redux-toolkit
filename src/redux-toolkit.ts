@@ -1,4 +1,4 @@
-import {createSlice, PayloadAction, configureStore, getDefaultMiddleware} from '@reduxjs/toolkit';
+import {createSlice, PayloadAction, configureStore, getDefaultMiddleware, ThunkAction, createAsyncThunk} from '@reduxjs/toolkit';
 import {v1 as uuid} from 'uuid';
 import {Todo} from './type';
 import logger from 'redux-logger';
@@ -20,6 +20,84 @@ const todosInitialState: Todo[] = [
     isComplete: false
   }
 ];
+
+
+// interface IRepoDetails {
+//   repos: any
+//   error: string | null
+// }
+// const initialState: IRepoDetails = {
+//   repos: [],
+//   error: null
+// }
+
+// const repoDetails = createSlice({
+//   name: 'repoDetails',
+//   initialState,
+//   reducers: {
+//     getReposSuccess(state, action: PayloadAction<IRepoDetails>) {
+//       state.repos = action.payload.repos;
+//       state.error = null;
+//     },
+//     getReposFailed(state, action: PayloadAction<string>) {
+//       state.repos = [];
+//       state.error = action.payload;
+//     }
+//   }
+// });
+
+// const fetchRepos = () => async (dispatch) => {
+//   try {
+//     const repos: any = await fetch('https://api.github.com/users/vasivanov/repos', {
+//       method: 'GET',
+//       headers: {
+//           'Content-Type': 'application/json',
+//       }
+//     });
+//     dispatch(repoDetails.actions.getReposSuccess(repos))
+//   } catch (error) {
+//     dispatch(repoDetails.actions.getReposFailed(error.toString()))
+//   }
+// }
+
+export const fetchRepos: any = createAsyncThunk(
+  'repos/fetchRepos',
+  async () => {
+    const res = await fetch('https://api.github.com/users/vasivanov/repos', {
+      method: 'GET',
+      headers: {
+          'Content-Type': 'application/json',
+      }
+    });
+    return res.json();
+  }
+)
+interface IRepos {
+  list: Array<any> | null
+  status: string | null
+}
+
+const initialState: IRepos = {
+  list: [],
+  status: null
+}
+const repoSlice = createSlice({
+  name: 'repos',
+  initialState,
+  reducers: {},
+  extraReducers: {
+    [fetchRepos.pending]: (state, action) => {
+      state.status = 'loading'
+    },
+    [fetchRepos.fulfilled]: (state, action) => {
+      state.list = action.payload
+      state.status = 'completed'
+    },
+    [fetchRepos.rejected]: (state, action) => {
+      state.status = 'failed'
+    },
+  }
+})
 
 const todosSlice = createSlice({
   name: 'todos',
@@ -90,11 +168,15 @@ export const {
   select: selectTodoActionCreator
 } = selectedTodoSlice.actions;
 
+
 const reducer = {
   todos: todosSlice.reducer,
   selectedTodo: selectedTodoSlice.reducer,
-  counter: counterSlice.reducer
+  counter: counterSlice.reducer,
+  repos: repoSlice.reducer
 }
+
+
 
 const middleware = [...getDefaultMiddleware(), logger];
 export default configureStore({

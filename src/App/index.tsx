@@ -7,10 +7,9 @@ import React, {
 } from "react";
 import {useSelector, useDispatch} from 'react-redux'
 // import {createTodoActionCreator, editTodoActionCreator, toggleTodoActionCreator, deleteTodoActionCreator, selectTodoActionCreator} from '../redux-og';
-import {createTodoActionCreator, editTodoActionCreator, toggleTodoActionCreator, deleteTodoActionCreator, selectTodoActionCreator} from '../redux-toolkit';
+import {createTodoActionCreator, editTodoActionCreator, toggleTodoActionCreator, deleteTodoActionCreator, selectTodoActionCreator, fetchRepos} from '../redux-toolkit';
 import { State } from "../type";
 import "./App.css";
-
 
 
 const App = function() {
@@ -18,12 +17,18 @@ const App = function() {
   const todos = useSelector((state: State) => state.todos);
   const selectedTodoId = useSelector((state: State) => state.selectedTodo);
   const editedCount = useSelector((state: State) => state.counter);
-
-
+  const repos = useSelector((state: State) => state.repos)
+  const state = useSelector((state: State) => state);
   const [newTodoInput, setNewTodoInput] = useState<string>("");
   const [editTodoInput, setEditTodoInput] = useState<string>("");
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const editInput = useRef<HTMLInputElement>(null);
+
+ 
+  useEffect(() => {
+    dispatch(fetchRepos())
+
+  }, [dispatch])
 
   const selectedTodo =
     (selectedTodoId && todos.find(todo => todo.id === selectedTodoId)) || null;
@@ -38,6 +43,8 @@ const App = function() {
 
   const handleCreateNewTodo = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
+    console.log(repos);
+
     if(!newTodoInput.length) return;
 
     dispatch(createTodoActionCreator({desc: newTodoInput}));
@@ -108,6 +115,7 @@ const App = function() {
           />
           <button type="submit">Create</button>
         </form>
+        
       </div>
       <div className="App__body">
         <ul className="App__list">
@@ -124,6 +132,7 @@ const App = function() {
             </li>
           ))}
         </ul>
+        
         <div className="App_todo-info">
           <h2>Selected Todo:</h2>
           {selectedTodo === null ? (
@@ -155,6 +164,9 @@ const App = function() {
               <button onClick={handleCancelUpdate}>Cancel</button>
             </form>
           )}
+        </div>
+        <div>
+          {repos.list ? repos.list.map((r: {name: string}, i: number) => (<p key={i}>{r.name}</p>)) : null}
         </div>
       </div>
     </div>

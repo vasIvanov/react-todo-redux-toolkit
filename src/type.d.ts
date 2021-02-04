@@ -8,4 +8,8 @@ export interface State {
   todos: Todo[];
   selectedTodo: string | null;
   counter: number;
+  repos: {
+    list: Array,
+    status: string | null
+  }
 }
